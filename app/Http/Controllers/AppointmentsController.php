@@ -3,53 +3,59 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
-use App\Models\User;
+use App\Models\Doctor;
+use App\Models\Patient;
 use Illuminate\Http\Request;
 
 class AppointmentsController extends Controller
 {
     // عرض كل المواعيد
     public function index() {
-        $appointments = Appointment::all();
+        $appointments = Appointment::with('doctor', 'patient')->get();
         return view('appointments.index', compact('appointments'));
     }
 
     // صفحة إنشاء موعد
-    public function create() {
-        $doctors = User::where('role', 1)->get(); // role 1 = doctor
-        return view('appointments.create', compact('doctors'));
-    }
+    public function create()
+{
+    $doctors = Doctor::all(); // نجيبوا جميع الأطباء
 
-    // حفظ الموعد الجديد
-    public function store(Request $request) {
-        $request->validate([
-            'motivation' => 'required|string',
-            'date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'doctor_id' => 'required|exists:users,id',
-        ]);
+    return view('appointments.create', compact('doctors'));
+}
+    // تخزين الموعد في قاعدة البيانات
+    public function store(Request $request)
+{
+    $request->validate([
+        'motivation' => 'required',
+        'date' => 'required',
+        'start_time' => 'required',
+        'end_time' => 'required',
+        'doctor_id' => 'required'
+    ]);
 
-        Appointment::create($request->all());
+    Appointment::create($request->all());
 
-        return redirect()->route('appointments.index')
-                         ->with('success', 'Appointment created successfully!');
-    }
+    return redirect()->route('appointments.index')
+           ->with('success', 'Appointment created successfully');
+}
 
-    // صفحة تعديل الموعد
+
+    // صفحة تعديل موعد
     public function edit(Appointment $appointment) {
-        $doctors = User::where('role', 1)->get();
-        return view('appointments.edit', compact('appointment', 'doctors'));
+        $doctors = Doctor::all();
+        $patients = Patient::all();
+        return view('appointments.edit', compact('appointment', 'doctors', 'patients'));
     }
 
-    // تحديث الموعد
+    // تحديث موعد
     public function update(Request $request, Appointment $appointment) {
         $request->validate([
             'motivation' => 'required|string',
             'date' => 'required|date',
             'start_time' => 'required',
             'end_time' => 'required',
-            'doctor_id' => 'required|exists:users,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'patient_id' => 'required|exists:patients,id',
         ]);
 
         $appointment->update($request->all());
@@ -58,7 +64,7 @@ class AppointmentsController extends Controller
                          ->with('success', 'Appointment updated successfully!');
     }
 
-    // حذف الموعد
+    // حذف موعد
     public function destroy(Appointment $appointment) {
         $appointment->delete();
         return redirect()->route('appointments.index')
