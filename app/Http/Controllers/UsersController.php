@@ -2,130 +2,99 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserFormRequest;
-use App\Http\Requests\UserUpdateFormRequest;
 use App\Models\User;
 use App\Enums\UserRoles;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\Hash;
 
 class UsersController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    // ================= USERS LIST =================
     public function index()
     {
         $users = User::all();
-        return view('users.index', ['users' => $users]);
+        return view('users.index', compact('users'));
     }
 
-    /**
-     * find the  doctors whose  names or last name match the query provided  
-     **/
-    public function findByQuery(Request $request)
-    {
-        $result = User::select('id', DB::raw("CONCAT(users.name,' ',users.lastname) as text"))
-            ->where('role', UserRoles::DOCTOR->value)
-            ->where(function($query) {
-                $query ->where('lastname', 'LIKE', '%' . request('queryTerm') . '%')
-                ->orWhere('name', 'LIKE', '%' . request('queryTerm') . '%');
-            })
-            ->get();
-            // select id , concat(name,'_',lastname) from users where role  = 0  and  (name = queryTerm or lastname = queryTerm )
-
-        return response()->json($result);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    // ================= CREATE FORM =================
     public function create()
     {
-        //
+        return view('users.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(UserFormRequest $request)
+    // ================= STORE USER =================
+    public function store(Request $request)
     {
-        $validated = $request->validated();
+        $data = $request->validate([
+            'name' => 'required|string',
+            'lastname' => 'required|string',
+            'username' => 'required|string|unique:users',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+            'role' => 'required|integer',
+        ]);
 
-        // hash password
-        $validated['password'] = Hash::make($validated['password']);
+        $data['password'] = Hash::make($data['password']);
+        $data['role'] = (int) $data['role'];
 
-        // store the VALIDATED user info to the database
-        $user = User::create($validated);
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User is created! username: ' . $user->username);
+        User::create($data);
+
+        return redirect()->route('users.index')
+            ->with('success', 'User created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    // ================= EDIT =================
     public function edit(User $user)
     {
-
-        // TODO check if $this  the update authorization 
-        return view('users.edit', ['user' => $user]);
+        return view('users.edit', compact('user'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UserUpdateFormRequest $request, User $user)
+    // ================= UPDATE =================
+    public function update(Request $request, User $user)
     {
-        // TODO check if $this  the update authorization 
+        $data = $request->validate([
+            'name' => 'required|string',
+            'lastname' => 'required|string',
+            'username' => 'required|string|unique:users,username,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:6',
+            'role' => 'required|integer',
+        ]);
 
-        $validated = $request->validated();
-        $user->update($validated);
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User is updated! username: ' . $user->username);
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
+
+        $data['role'] = (int) $data['role'];
+
+        $user->update($data);
+
+        return redirect()->route('users.index')
+            ->with('success', 'User updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    // ================= DELETE =================
     public function destroy(User $user)
     {
-        // TODO check if $this has the delete authorization 
-
         $user->delete();
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User has been deleted!');
+
+        return redirect()->route('users.index')
+            ->with('success', 'User deleted successfully');
+    }
+
+    // ================= PATIENTS LIST =================
+    public function patientsList()
+    {
+        $patients = User::where('role', UserRoles::PATIENT->value)->get();
+        return view('users.patients', compact('patients'));
+    }
+
+    // ================= DOCTORS LIST =================
+    public function doctorsList()
+    {
+        $doctors = User::where('role', UserRoles::DOCTOR->value)->get();
+        return view('users.doctors', compact('doctors'));
     }
 }

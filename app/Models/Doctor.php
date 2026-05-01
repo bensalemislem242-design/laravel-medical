@@ -14,5 +14,10 @@ class Doctor extends Model
         'specialty',
         'phone',
         'email',
+        'specialty_id',
     ];
+     public function specialty()
+    {
+        return $this->belongsTo(Specialty::class);
+    }
 }

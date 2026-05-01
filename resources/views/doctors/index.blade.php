@@ -1,18 +1,19 @@
-@extends('layout')
+@extends('layout') 
 @section('title', 'Doctors Management')
 @section('header', 'Doctors List')
 
 @section('content')
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-bordered table-striped">
-                <thead>
+<div class="card shadow-sm border-0 rounded">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="thead-light">
                     <tr>
                         <th>Name</th>
                         <th>Specialty</th>
                         <th>Phone</th>
                         <th>Email</th>
-                        <th>Actions</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -22,14 +23,19 @@
                         <td>{{ $doctor->specialty }}</td>
                         <td>{{ $doctor->phone }}</td>
                         <td>{{ $doctor->email }}</td>
-                        <td>
-                            <a href="{{ route('doctors.show', $doctor) }}" class="btn btn-info"><i class="fas fa-eye"></i></a>
-                            <a href="{{ route('doctors.edit', $doctor) }}" class="btn btn-warning"><i class="fas fa-pen"></i></a>
-                            <form action="{{ route('doctors.destroy', $doctor) }}" method="POST" style="display:inline-block;">
+                        <td class="text-center">
+                            <a href="{{ route('doctors.show', $doctor) }}" class="btn btn-sm btn-info" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('doctors.edit', $doctor) }}" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <form action="{{ route('doctors.destroy', $doctor) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger" onclick="return confirm('Are you sure?')">
-                                    <i class="fas fa-trash"></i>
+                                <button type="submit" class="btn btn-sm btn-danger" title="Delete"
+                                        onclick="return confirm('Are you sure you want to delete this doctor?')">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
                         </td>
@@ -37,7 +43,28 @@
                     @endforeach
                 </tbody>
             </table>
-            <a href="{{ route('doctors.create') }}" class="btn btn-success mt-3"><i class="fas fa-user-md"></i> Add Doctor</a>
         </div>
+
+        <!-- Floating Add Doctor button -->
+        <a href="{{ route('doctors.create') }}" class="btn btn-success rounded-circle shadow-lg"
+           style="position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; font-size: 24px; display: flex; align-items: center; justify-content: center;"
+           title="Add Doctor">
+            <i class="fas fa-user-md"></i>
+        </a>
     </div>
+</div>
+
+<!-- Optional: initialize DataTables if needed -->
+<script>
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+        });
+    });
+</script>
 @endsection

@@ -15,9 +15,11 @@ return new class extends Migration
     {
         Schema::create('scans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('patient_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->string('type');
-            $table->text('scan_path');
+            $table->string('scan_path');
+
         });
     }
 

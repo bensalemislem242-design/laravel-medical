@@ -8,7 +8,9 @@ use App\Models\Patient;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-
+use App\Enums\UserRoles;
+use App\Models\User; 
+use Illuminate\Support\Facades\Hash;
 
 class PatientsController extends Controller
 {
@@ -18,120 +20,65 @@ class PatientsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $patients = Auth::user()
-            ->patients(
-            )
-            ->orderBy(
-                'lastname'
-            )
-            ->get(
-            );
+    { 
+        $patients = Patient::orderBy('lastname')->get();
         return view('patients.index', ['patients' => $patients]);
     }
 
-    // find the  patients whose  names or last name match the query provided  
+    /**
+     * Search patients by query (name or lastname)
+     */
     public function findByQuery(Request $request)
     {
         $result = Patient::select('id', DB::raw("CONCAT(patients.name,' ',patients.lastname) as text"))
-            ->where(
-                'lastname',
-                'LIKE', '%' . request('queryTerm') . '%'
-            )
-            ->orWhere(
-                'name',
-                'LIKE', '%' . request('queryTerm') . '%'
-            )
-            ->get(
-            );
+            ->where('lastname', 'LIKE', '%' . $request->queryTerm . '%')
+            ->orWhere('name', 'LIKE', '%' . $request->queryTerm . '%')
+            ->get();
+
         return response()->json($result);
     }
+
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Store a newly created patient and user
      */
-    public function create()
-    {
-        //
-    }
+   public function store(Request $request)
+{
+    $prescription = Prescription::create([
+        'patient_id' => $request->patient_id,
+        'medication' => $request->medication,
+        'dosage' => $request->dosage,
+        'instructions' => $request->instructions,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'data' => $prescription
+    ]);
+}
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(PatientFormRequest $request)
-    {
-        $validated = $request->validated();
-        $patient = Patient::create($validated);
-
-        // If this patient was added by the doctor 
-        // we attachPatient to the current doctor
-        if (isset($request->doctor_id)) {
-            ModelHelpers::attachPatient($request->doctor_id, $patient->id);
-
-            return redirect()
-                ->route(
-                    'patients.show',
-                    ['patient' => $patient]
-                )
-                ->with(
-                    'success', 'patients: ' . $patient->name . ' is created '
-                );
-        }
-
-        return redirect()
-            ->route(
-                'patients.index'
-            )
-            ->with(
-                'success', 'patients: ' . $patient->name . ' is created '
-            );
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Display a specific patient along with related data
      */
     public function show(Patient $patient)
     {
-
-        // current doctor ID
         $doctor_id = Auth::user()->id;
 
-        // A list of doctor-patient appointments
         $appointments = $patient->appointments()->where('user_id', $doctor_id)->get();
-
-        // A list of doctor-patient orientationLtrs
         $orientationLtrs = $patient->orientationLtrs()->where('user_id', $doctor_id)->get();
-        
-        // A list of doctor-patient prescriptions
         $prescriptions = $patient->prescriptions()->where('user_id', $doctor_id)->get();
-        
-        // A list of doctor-patient scans
         $scans = $patient->scans()->where('user_id', $doctor_id)->get();
 
-        return view(
-            'patients.show',
-            [
-                'patient' => $patient,
-                'appointments' => $appointments,
-                'prescriptions'=>$prescriptions,
-                'scans'=>$scans,
-                'orientationLtrs'=>$orientationLtrs,
-            ]
-        );
+        return view('patients.show', [
+            'patient' => $patient,
+            'appointments' => $appointments,
+            'prescriptions' => $prescriptions,
+            'scans' => $scans,
+            'orientationLtrs' => $orientationLtrs,
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Show the form for editing a patient
      */
     public function edit(Patient $patient)
     {
@@ -139,31 +86,51 @@ class PatientsController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Update a patient
      */
     public function update(Patient $patient, PatientFormRequest $request)
     {
         $validated = $request->validated();
         $patient->update($validated);
 
-        return back()
-        ->with(
-                'success', 'patients: ' . $patient->name . ' is updated! '
-            );
+        return back()->with('success', 'Patient ' . $patient->name . ' updated!');
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Delete a patient and corresponding user
      */
-    public function destroy($id)
+    public function destroy(Patient $patient)
     {
-        //
+        if ($patient->user) {
+            $patient->user->delete();
+        }
+
+        $patient->delete();
+
+        return redirect()->route('patients.index')
+                         ->with('success', 'Patient and user deleted successfully.');
+    }
+
+    /**
+     * 🔹 API: Get all patients (JSON) for Flutter
+     */
+    public function apiIndex()
+    {
+        $patients = Patient::orderBy('lastname')->get();
+        return response()->json($patients);
+    }
+
+    /**
+     * 🔹 API: Get single patient with relations (JSON) for Flutter
+     */
+    public function apiShow($id)
+    {
+        $patient = Patient::with(['appointments', 'orientationLtrs', 'prescriptions', 'scans'])->find($id);
+
+        if (!$patient) {
+            return response()->json(['message' => 'Patient not found'], 404);
+        }
+
+        return response()->json($patient);
     }
 }

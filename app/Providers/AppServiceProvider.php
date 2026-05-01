@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View; 
+use App\Models\Appointment; 
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        View::composer('*', function ($view) {
+        $newAppointmentsCount = Appointment::where('is_new', 1)->count();
+        $view->with('newAppointmentsCount', $newAppointmentsCount);
+    });
     }
 }

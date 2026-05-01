@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
+
 
 class ScanFormRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class ScanFormRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return false;
     }
 
     /**
@@ -21,10 +23,13 @@ class ScanFormRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function rules()
-    {
-        return [
-            'type' => 'required',
-        ];
-    }
+public function rules()
+{
+    return [
+        'patient_id' => 'required|exists:patients,id',
+        'type' => 'required|string',
+        'scan_path' => 'required|file',
+    ];
+}
+
 }

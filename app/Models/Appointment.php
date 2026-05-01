@@ -4,8 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User; // pour patient et user
-use App\Models\Doctor;
+use App\Models\User;
 
 class Appointment extends Model
 {
@@ -18,30 +17,39 @@ class Appointment extends Model
         'date',
         'start_time',
         'end_time',
-        'user_id', // ajouter cette ligne
+        'status',
+        'user_id',
+        'hospital_id',
+        'is_new',           // Ajouté
+        'appointment_date', // Ajouté
+        'appointment_time', // Ajouté
     ];
+    
+  
+    /* =========================
+       RELATIONS
+    ========================= */
 
-    /**
-     * Relation avec le docteur
-     */
+    // Doctor (user avec role doctor)
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class);
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 
-    /**
-     * Relation avec le patient
-     */
+    // Patient (user avec role patient)
     public function patient()
     {
         return $this->belongsTo(User::class, 'patient_id');
     }
 
-    /**
-     * Relation avec l'utilisateur qui crée le rendez-vous
-     */
+    // Creator (admin ou staff)
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
     }
 }

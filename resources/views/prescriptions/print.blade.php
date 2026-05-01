@@ -101,7 +101,7 @@
             <div class="row">
                 <div class="col-12">
                     <h2 class="page-header">
-                        <i id="logo" class="fas fa-globe"></i> Clinique Tlemcen
+                        <i id="logo" class="fas fa-globe"></i> S-Hospital
                         <small
                             class="float-right">Date:{{ date('Y-m-d', strtotime($prescription['updated_at'])) }}</small>
                     </h2>
@@ -134,6 +134,14 @@
                         <tr>
                             <td colspan="4">
                                 <textarea id="prescritionBody" cols="29" rows="13">{{ $prescription->content }}</textarea>
+                                <tr>
+    <td colspan="4" style="text-align:center;">
+        <button onclick="sendPrescription()" class="btn btn-primary">
+            Envoyer vers l'application
+        </button>
+    </td>
+</tr>
+
                             </td>
                         </tr>
                     </tbody>
@@ -145,9 +153,76 @@
     </div>
 
     <!-- Page specific script -->
-    <script>
-        window.addEventListener("load", window.print());
-    </script>
+    <!-- Dans votre fichier blade -->
+<!-- Dans votre fichier blade, corrigez le JavaScript -->
+<script>
+    window.addEventListener("load", window.print());
+    
+    async function sendPrescription() {
+        // Récupérer la valeur du textarea
+        const instructionsText = document.getElementById("prescritionBody").value;
+        
+        if (!instructionsText.trim()) {
+            alert("Veuillez saisir une prescription avant d'envoyer");
+            return;
+        }
+        
+        const sendButton = event.target;
+        const originalText = sendButton.textContent;
+        
+        // Désactiver le bouton
+        sendButton.disabled = true;
+        sendButton.textContent = "Envoi en cours...";
+        
+        try {
+            // Construire l'URL complète
+            const apiUrl = "{{ url('/api/sendPrescription') }}";
+            
+            console.log("Envoi à:", apiUrl);
+            console.log("Données:", {
+                patient_id: {{ $patient->id }},
+                medication: "Prescription médicale",
+                dosage: "Selon ordonnance",
+                instructions: instructionsText
+            });
+            
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    patient_id: {{ $patient->id }},
+                    medication: "Prescription médicale",
+                    dosage: "Selon ordonnance",
+                    instructions: instructionsText
+                })
+            });
+            
+            const data = await response.json();
+            console.log("Réponse:", data);
+            
+            if (response.ok) {
+                alert("✓ Prescription envoyée avec succès !");
+                // Optionnel: vider le textarea
+                // document.getElementById("prescritionBody").value = "";
+            } else {
+                alert("✗ Erreur: " + (data.message || JSON.stringify(data)));
+            }
+            
+        } catch (error) {
+            console.error("Erreur détaillée:", error);
+            alert("✗ Erreur: " + error.message + "\nVérifiez la console pour plus de détails");
+            
+        } finally {
+            // Réactiver le bouton
+            sendButton.disabled = false;
+            sendButton.textContent = originalText;
+        }
+    }
+</script>
 </body>
 
 </html>

@@ -6,11 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('appointments', function (Blueprint $table) {
@@ -20,20 +15,15 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
 
-            // Colonnes pour les relations
+            // Tous les IDs pointent vers users
             $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // utilisateur qui crée le rendez-vous
-            $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade'); // si nécessaire
+            $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('appointments');

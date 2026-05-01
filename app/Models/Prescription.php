@@ -1,25 +1,30 @@
 <?php
+// app/Models/Prescription.php
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Prescription extends Model
 {
     use HasFactory;
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
-        'content',
-        'user_id',
+        'patient_id',
+        'medication',
+        'dosage',
+        'instructions',
+        'content',  // AJOUTER ICI
+        'file',
+        'prescribed_at'
     ];
 
-    // Return the patient for whom this Prescription was written 
-
+    protected $casts = [
+        'prescribed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function patient()
     {

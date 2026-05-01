@@ -13,7 +13,7 @@ class PatientFormRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return false;
     }
 
     /**
@@ -22,19 +22,15 @@ class PatientFormRequest extends FormRequest
      * @return array<string, mixed>
      */
     public function rules()
-    {
-        return [
-            'name' => 'required',
-            'lastname' => 'required',
-            'noSSocial' =>  'required',
-            'dob' =>  'required',
-            'email' =>  'required',
-            'phone' =>  'required',
-            'diseases' => 'nullable|string',
-            'allergies' => 'nullable|string',
-            'antecedents' => 'nullable|string',
-            'comments' => 'nullable|string',
+{
+    return [
+        'name' => 'required|string|max:255',
+        'lastname' => 'required|string|max:255',
+        'noSSocial' => 'required|string|max:50',
+        'email' => 'required|email',
+        'phone' => 'nullable|string',
+        'dob' => 'required|date',
+    ];
+}
 
-        ];
-    }
 }

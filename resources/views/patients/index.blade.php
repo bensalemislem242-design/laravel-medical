@@ -13,72 +13,70 @@
                             role="grid" aria-describedby="patients_table_info">
                             <thead>
                                 <tr role="row">
-                                    <th class="sorting_asc" tabindex="0" aria-controls="patients_table" rowspan="1"
-                                        colspan="1" aria-sort="ascending"
-                                        aria-label="Rendering engine: activate to sort column descending">
-                                        name</th>
-                                    <th class="sorting" tabindex="0" aria-controls="patients_table" rowspan="1"
-                                        colspan="1" aria-label="Browser: activate to sort column ascending">
-                                        last name</th>
-                                    <th class="sorting" tabindex="0" aria-controls="patients_table" rowspan="1"
-                                        colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        Date of Birth</th>
-                                    <th class="sorting" tabindex="0" aria-controls="patients_table" rowspan="1"
-                                        colspan="1" aria-label="Engine version: activate to sort column ascending">
-                                        Phone</th>
-                                    <th class="sorting" tabindex="0" aria-controls="patients_table" rowspan="1"
-                                        colspan="1" aria-label="CSS grade: activate to sort column ascending">
-                                        email</th>
-                                    <th rowspan="1" colspan="1">
-                                        actions</th>
+                                    <th>Name</th>
+                                    <th>Last Name</th>
+                                    <th>Date of Birth</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $counter = 1;
-                                @endphp
-
+                                @php $counter = 1; @endphp
                                 @foreach ($patients as $patient)
                                     <tr role="row" class="{{ $counter % 2 == 0 ? 'even' : 'odd' }}">
-                                        <td class="dtr-control sorting_1" tabindex="0">
-                                            {{ $patient['name'] }}</td>
+                                        <td>{{ $patient['name'] }}</td>
                                         <td>{{ $patient['lastname'] }}</td>
                                         <td>{{ $patient['dob'] }}</td>
                                         <td>{{ $patient['phone'] }}</td>
                                         <td>{{ $patient['email'] }}</td>
-                                        <td
-                                            style="padding-right: -3.25rem;border-right-width: 0px;height: 37px;width: 95.833px;">
-                                            <a href="{{ route('patients.show', [$patient]) }}"
-                                                class="btn btn-profile btn-del"
-                                                style="height: 41px;min-width: 46px;margin: 0px;padding: 0px;"><i
-                                                    class="fas fa-external-link-alt"></i></a>
+                                        <td style="width: 140px;">
 
-                                            <a href="{{ route('patients.edit', [$patient]) }}"
-                                                class="btn btn-app btn-modify"
-                                                style="height: 41px;min-width: 46px;margin: 0px;padding: 0px;">
+                                            <!-- Show button -->
+                                            <a href="{{ route('patients.show', [$patient]) }}" class="btn btn-profile"
+                                                style="height: 41px; min-width: 46px; margin: 0; padding: 0;">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+
+                                            <!-- Edit button -->
+                                            <a href="{{ route('patients.edit', [$patient]) }}" class="btn btn-app"
+                                                style="height: 41px; min-width: 46px; margin: 0; padding: 0;">
                                                 <i class="fas fa-pen"></i>
                                             </a>
+
+                                            <!-- Delete button -->
+                                            <form action="{{ route('patients.destroy', [$patient]) }}" method="POST" style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger"
+                                                    style="height: 41px; min-width: 46px; margin:0; padding:0;"
+                                                    onclick="return confirm('Are you sure you want to delete this patient? This will also delete the associated user if exists.');">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+
                                         </td>
                                     </tr>
-                                    @php
-                                        $counter++;
-                                    @endphp
+                                    @php $counter++; @endphp
                                 @endforeach
-
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
+            <!-- Add patient button -->
             <div class="add-btn-container">
-                <button type="button" class="  btn-default add-btn " data-toggle="modal" data-target="#modal-add-patient">
-                    <i class="fas fa-user-plus" style="font-size: 29px;margin-bottom: 8px;margin-left: 1px;"></i>
+                <button type="button" class="btn-default add-btn" data-toggle="modal" data-target="#modal-add-patient">
+                    <i class="fas fa-user-plus" style="font-size: 29px; margin-bottom: 8px; margin-left: 1px;"></i>
                 </button>
             </div>
+
         </div>
         <!-- /.card-body -->
     </div>
     <!-- /.card -->
+
     @include('modals._add_patient')
 
 @endsection

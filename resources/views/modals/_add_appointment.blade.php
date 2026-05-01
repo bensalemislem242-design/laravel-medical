@@ -1,134 +1,104 @@
-    <!--popOut RENDEZ-VOUS model -->
+<!-- PopOut RENDEZ-VOUS Modal -->
+<div class="modal fade" id="modal_add_appointment">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h4 class="modal-title m-0">Add an Appointment</h4>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
 
-    <div class="modal fade" id="modal_add_appointment">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">add an appointment</h4>
-                </div>
-                <div class="modal-body">
+            <div class="modal-body px-4 py-3">
+                <form class="needs-validation" method="POST" action="{{ route('appointments.store') }}" novalidate>
+                    @csrf
 
+                    <!-- Doctor Selection -->
+                    @if (\App\Enums\UserRoles::isDoctor(Auth::user()->role))
+                        <input id="doctor" name="doctor_id" type="number" value="{{ Auth::user()->id }}" hidden />
+                    @else
+                        <div class="form-group mb-3">
+                            <label class="form-label">Doctor</label>
+                            <select name="doctor_id" class="form-control select2-doctor-ajax"></select>
+                        </div>
+                    @endif
 
-                    <!-- Main content -->
-                    <!-- partial:index.partial.html -->
-                    <div class="container">
-                        <form class="needs-validation" method="POST" action="{{ route('appointments.store') }}"
-                            novalidate>
-                            @csrf
-
-                            @if (\App\Enums\UserRoles::isDoctor(Auth::user()->role))
-                                <input id="doctor" name="doctor_id" type="number" value="{{ Auth::user()->id }}"
-                                    hidden />
-                            @else
-                                <div class="row">
-                                    <div class="col-sm">
-                                        <div class="form-group">
-                                            <label>Doctor</label>
-                                            <div class="model-field__control">
-                                                <select name='doctor_id'
-                                                    class=" form-control select2-doctor-ajax"></select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <div class="row">
-                                <div class="col-sm">
-                                    <div class="form-group">
-                                        <label>Patient</label>
-                                        <div class="model-field__control">
-                                            <select name='patient_id'
-                                                class=" form-control select2-patient-ajax"></select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm">
-                                    <div class="model-field">
-                                        <div class="model-field__control">
-                                            <textarea id="motivation" name="motivation" type="text" class=" form-field__textarea form-control"
-                                                placeholder="motivation" required></textarea>
-                                            {{-- <label for="motivation" class="model-field__label">motivation</label> --}}
-                                            <div class="model-field__bar"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="row">
-                                <div class="col-sm">
-                                    <div class="model-field">
-
-                                        <div class="input-group date" id="date" name="date"
-                                            data-target-input="nearest">
-                                            <input type="date" name="date" class="form-control "
-                                                data-target="#date" placeholder=" Date of birth" required />
-                                            <div class="input-group-append" data-target="#date"
-                                                data-toggle="datetimepicker">
-                                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!--start_time-->
-
-                            <div class="row">
-                                <div class="col-sm">
-                                    <div class="model-field">
-
-                                        <div class="input-group ">
-                                            <input type="time" name="start_time" id="start_time"
-                                                class="form-control " titl="start time" min="09:00" max="18:00"
-                                                required />
-                                            <div class="input-group-append">
-                                                <div class="input-group-text"><i class="far fa-clock"></i></div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end start_time-->
-
-                            <!--end_time-->
-
-
-                            <div class="row">
-                                <div class="col-sm">
-                                    <div class="model-field">
-
-                                        <div class="input-group ">
-                                            <input type="time" name="end_time" id="end_time" class="form-control "
-                                                titl="start time" min="09:00" max="18:00" required />
-                                            <div class="input-group-append">
-                                                <div class="input-group-text"><i class="far fa-clock"></i></div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end_time-->
-
-                            <div class="modal-footer justify-content-between">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">cancel</button>
-                                <button type="submit" class="btn btn-primary">add</button>
-                            </div>
-                        </form>
-
-
+                    <!-- Patient Selection -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Patient</label>
+                        <select name="patient_id" class="form-control select2-patient-ajax"></select>
                     </div>
 
-                </div>
-                <!-- /.modal-content -->
+                    <!-- Motivation -->
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="motivation">Motivation</label>
+                        <textarea id="motivation" name="motivation" class="form-control" placeholder="Enter motivation" rows="3" required></textarea>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Date</label>
+                        <div class="input-group">
+                            <input type="date" name="date" class="form-control" required />
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Start Time -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Start Time</label>
+                        <div class="input-group">
+                            <input type="time" name="start_time" class="form-control" min="09:00" max="18:00" required />
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="far fa-clock"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- End Time -->
+                    <div class="form-group mb-4">
+                        <label class="form-label">End Time</label>
+                        <div class="input-group">
+                            <input type="time" name="end_time" class="form-control" min="09:00" max="18:00" required />
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="far fa-clock"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Add</button>
+                    </div>
+                </form>
             </div>
-            <!-- /.modal-dialog -->
         </div>
-        <!-- /.modal -->
     </div>
+</div>
+
+<!-- Optional Custom Styles -->
+<style>
+    #modal_add_appointment .modal-header {
+        border-bottom: none;
+    }
+    #modal_add_appointment .form-label {
+        font-weight: 600;
+    }
+    #modal_add_appointment .form-control {
+        border-radius: 0.5rem;
+        padding: 0.625rem 0.75rem;
+    }
+    #modal_add_appointment .input-group-text {
+        background-color: #f0f2f5;
+        border-radius: 0.5rem;
+    }
+    #modal_add_appointment .btn-primary {
+        background: linear-gradient(135deg, #2aa9fb, #37e1c3);
+        border: none;
+    }
+    #modal_add_appointment .btn-secondary {
+        background: #6c757d;
+        border: none;
+    }
+</style>

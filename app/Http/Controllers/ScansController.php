@@ -2,121 +2,75 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ScanFormRequest;
-use App\Models\Patient;
 use App\Models\Scan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ScansController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * STORE SCAN
      */
-    public function index()
+    public function store(Request $request)
     {
-        //
+        // ✅ VALIDATION
+        $validated = $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'type'       => 'required|string|max:50',
+            'scan_path' => 'required|file|mimes:jpg,jpeg,png,pdf,dcm',
+        ]);
+
+        // ✅ UPLOAD FILE
+        $filePath = null;
+
+        if ($request->hasFile('scan_path')) {
+
+            $file = $request->file('scan_path');
+
+            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // storage in public/scans
+            $file->move(public_path('scans'), $fileName);
+
+            $filePath = 'scans/' . $fileName;
+        }
+
+        // ❗ IMPORTANT: SAVE TO DB
+ Scan::create([
+    'user_id'    => auth()->id(),   // 🔥 هذا المهم
+    'patient_id' => $validated['patient_id'],
+    'type'       => $validated['type'],
+    'scan_path'  => $filePath,
+]);
+
+        return redirect()->back()->with('success', 'Scan ajouté avec succès');
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * SHOW SINGLE SCAN (download)
      */
-    public function create()
-    {
-        //
-    }
+public function show($id)
+{
+    $scan = Scan::findOrFail($id);
+
+    return view('scans.show', compact('scan'));
+}
+
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(ScanFormRequest $request)
-    {
-        // current doctor ID
-        $doctor_id = Auth::user()->id;
-
-        $patient = Patient::find($request->patient_id);
-        $validated = $request->validated();
-
-        $patient->scans()->create(
-            array_merge(
-                $validated,
-                [
-                    'scan_path' => $this->storeScan($request),
-                    'user_id' => $doctor_id
-                ]
-            )
-        );
-        return back()
-            ->with(
-                'success',
-                'a new Scan is created'
-            );
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        $scan = Scan::find($id);
-        $filePath =$scan->scan_path;
-        return response()->download($filePath);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * DELETE SCAN
      */
     public function destroy($id)
     {
-    }
+        $scan = Scan::findOrFail($id);
 
+        $file = public_path($scan->scan_path);
 
-    public function download($id)
-    {
-        $scan = Scan::find($id);
-        $filePath =$scan->scan_path;
-        return response()->download($filePath);
-    }
-    private function storeScan($request)
-    {
-        $imageName = time() . '.' . $request->image->extension();
-        // upload image to Public Folder
-        return $request->image->move(public_path('images'), $imageName);
+        if (file_exists($file)) {
+            unlink($file);
+        }
+
+        $scan->delete();
+
+        return redirect()->back()->with('success', 'Scan supprimé avec succès');
     }
 }

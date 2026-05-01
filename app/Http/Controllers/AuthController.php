@@ -21,10 +21,11 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
-
-        if (Auth::attempt($credentials)) {
-            return redirect()
-                ->route('appointments.index');
+        // نضيف Remember Me
+        $remember = $request->filled('remember');
+        if (Auth::attempt($credentials, $remember)) {
+            $request->session()->regenerate(); // حماية CSRF
+            return redirect()->route('dashboard');
         }
 
         // if the user doesn't exist in the DB

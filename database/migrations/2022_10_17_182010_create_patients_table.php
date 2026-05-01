@@ -15,9 +15,11 @@ return new class extends Migration {
         Schema::create(
             'patients', function (Blueprint $table) {
                 $table->id();
+                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->timestamps();
                 $table->string('name');
                 $table->string('lastname');
+                 $table->string('username')->unique();
                 $table->integer('noSSocial');
                 $table->date('dob');
                 $table->string('phone');

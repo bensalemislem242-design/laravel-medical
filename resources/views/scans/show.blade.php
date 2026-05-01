@@ -10,7 +10,8 @@
 
 <body>
 
-    <img src="{{ asset('images/' . $name) }}" />
+    <img src="{{ asset($scan->scan_path) }}" width="200">
+
 
 </body>
 
